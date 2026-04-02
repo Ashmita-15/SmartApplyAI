@@ -29,7 +29,6 @@ async def apply(data: ApplyRequest, authorization: Optional[str] = Header(None))
             "resume_id": data.resume_id,
             "status": "applied",
             "applied_via": "smart_apply",
-            "submitted_data": data.user_details if data.user_details else {}
         }
         if user_id:
             record["user_id"] = user_id

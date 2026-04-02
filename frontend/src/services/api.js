@@ -72,6 +72,7 @@ export const getSkillGap = (data) => api.post('/ai/skill-gap', data)
 export const getSelectionProbability = (data) => api.post('/ai/selection-probability', data)
 export const batchMatch = (data) => api.post('/ai/batch-match', data)
 export const prepareAutofill = (data) => api.post('/ai/prepare-autofill', data)
+export const smartApplyPrepare = (data) => api.post('/ai/smart-apply-prepare', data)
 
 // Applications
 export const applyToJob = (data) => api.post('/applications/apply', data)

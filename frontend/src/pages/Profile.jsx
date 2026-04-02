@@ -132,11 +132,30 @@ export default function Profile() {
 
     try {
       setUploading(true)
-      await api.uploadResume(file)
+      const uploadRes = await api.uploadResume(file)
       toast.success('Resume uploaded successfully!')
-      // Refresh list
+      // Refresh resume list
       const res = await api.getResumes()
       setResumes(res.data.resumes || [])
+
+      // Auto-sync: merge resume skills into profile skills
+      const resumeSkills = uploadRes.data?.skills || []
+      if (resumeSkills.length > 0) {
+        const existingSkills = profile.skills || []
+        const existingLower = existingSkills.map(s => s.toLowerCase())
+        const newSkills = resumeSkills.filter(s => !existingLower.includes(s.toLowerCase()))
+        if (newSkills.length > 0) {
+          const mergedSkills = [...existingSkills, ...newSkills]
+          setProfile(prev => ({ ...prev, skills: mergedSkills }))
+          // Persist to database
+          try {
+            await api.updateProfile({ skills: mergedSkills })
+            toast.success(`${newSkills.length} skills imported from resume!`, { icon: '🎯' })
+          } catch {
+            console.error('Failed to sync resume skills to profile')
+          }
+        }
+      }
     } catch (error) {
       toast.error('Failed to upload resume.')
     } finally {
@@ -155,26 +174,39 @@ export default function Profile() {
     }
   }
 
-  const handleAddSkill = (e) => {
+  const handleAddSkill = async (e) => {
     if (e.key === 'Enter' && newSkill.trim()) {
       e.preventDefault()
-      if (profile.skills.includes(newSkill.trim())) {
+      const skill = newSkill.trim()
+      if (profile.skills.includes(skill)) {
         toast.error('Skill already added.')
         return
       }
-      setProfile(prev => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()]
-      }))
+      const updatedSkills = [...profile.skills, skill]
+      setProfile(prev => ({ ...prev, skills: updatedSkills }))
       setNewSkill('')
+      // Auto-save to backend
+      try {
+        await api.updateProfile({ skills: updatedSkills })
+      } catch {
+        toast.error('Failed to save skill')
+        // Revert
+        setProfile(prev => ({ ...prev, skills: prev.skills.filter(s => s !== skill) }))
+      }
     }
   }
 
-  const removeSkill = (skillToRemove) => {
-    setProfile(prev => ({
-      ...prev,
-      skills: prev.skills.filter(s => s !== skillToRemove)
-    }))
+  const removeSkill = async (skillToRemove) => {
+    const updatedSkills = profile.skills.filter(s => s !== skillToRemove)
+    setProfile(prev => ({ ...prev, skills: updatedSkills }))
+    // Auto-save to backend
+    try {
+      await api.updateProfile({ skills: updatedSkills })
+    } catch {
+      toast.error('Failed to remove skill')
+      // Revert
+      setProfile(prev => ({ ...prev, skills: [...prev.skills, skillToRemove] }))
+    }
   }
 
   const calculateProgress = () => {

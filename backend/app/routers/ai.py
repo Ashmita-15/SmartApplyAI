@@ -51,7 +51,7 @@ async def match_score(data: MatchRequest):
         user_education = ""
         if resume.get("user_id"):
             try:
-                profile_res = supabase.table("profiles").select("total_experience_months, education").eq("user_id", resume["user_id"]).single().execute()
+                profile_res = supabase.table("profiles").select("total_experience_months, education").eq("id", resume["user_id"]).single().execute()
                 if profile_res.data:
                     user_experience_months = profile_res.data.get("total_experience_months", 0) or 0
                     user_education = profile_res.data.get("education", "") or ""

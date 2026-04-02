@@ -65,7 +65,7 @@ async def prepare_autofill(data: PrepareAutofillRequest, request: Request):
         job = job_res.data
 
         # Fetch profile
-        profile_res = supabase_admin.table("profiles").select("*").eq("user_id", user_id).single().execute()
+        profile_res = supabase_admin.table("profiles").select("*").eq("id", user_id).single().execute()
         if not profile_res.data:
             raise HTTPException(status_code=404, detail="Profile not found. Please complete your profile first.")
         profile = profile_res.data

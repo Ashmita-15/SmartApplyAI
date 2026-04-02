@@ -54,6 +54,20 @@ async def upload_resume(
 
         db_result = supabase_admin.table("resumes").insert(record).execute()
 
+        # Auto-sync: merge resume skills into user's profile
+        if user_id and skills:
+            try:
+                profile_res = supabase_admin.table("profiles").select("skills").eq("id", user_id).execute()
+                if profile_res.data:
+                    existing_skills = profile_res.data[0].get("skills") or []
+                    existing_lower = [s.lower() for s in existing_skills]
+                    new_skills = [s for s in skills if s.lower() not in existing_lower]
+                    if new_skills:
+                        merged = existing_skills + new_skills
+                        supabase_admin.table("profiles").update({"skills": merged}).eq("id", user_id).execute()
+            except Exception as sync_err:
+                print(f"Skill sync to profile failed (non-critical): {sync_err}")
+
         return {
             "id": db_result.data[0]["id"],
             "filename": file.filename,

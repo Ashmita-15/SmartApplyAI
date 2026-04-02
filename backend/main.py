@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
-from app.routers import auth, jobs, resume, ai, applications, profile, dashboard, apply
+from app.routers import auth, jobs, resume, ai, applications, profile, dashboard, apply, smart_apply
 
 settings = get_settings()
 
@@ -29,6 +29,7 @@ app.include_router(dashboard.router)
 app.include_router(applications.router)
 app.include_router(profile.router)
 app.include_router(apply.router)
+app.include_router(smart_apply.router)
 
 
 @app.get("/health")

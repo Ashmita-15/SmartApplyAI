@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, Briefcase, ExternalLink, Users, DollarSign, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { ApplyModal } from './ApplyModal'
+import { SmartApplyWizard } from './SmartApplyWizard'
 import toast from 'react-hot-toast'
 
 export function JobCard({ job, onAnalyze, selectedResumeId, matchData, onSelectResume, autoOpenApply }) {
   const [showModal, setShowModal] = useState(false)
-  const [applyOpen, setApplyOpen] = useState(false)
+  const [wizardOpen, setWizardOpen] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -26,13 +26,9 @@ export function JobCard({ job, onAnalyze, selectedResumeId, matchData, onSelectR
       navigate('/auth')
       return
     }
-    if (!selectedResumeId) {
-      onSelectResume && onSelectResume()
-      toast('Please select a resume first', { icon: '📄' })
-      return
-    }
+    // Wizard handles resume selection internally
     setShowModal(false)
-    setApplyOpen(true)
+    setWizardOpen(true)
   }
 
   // Fallbacks
@@ -164,16 +160,11 @@ export function JobCard({ job, onAnalyze, selectedResumeId, matchData, onSelectR
         )}
       </AnimatePresence>
 
-      {/* Smart Apply Modal */}
-      <ApplyModal
-        isOpen={applyOpen}
-        onClose={() => setApplyOpen(false)}
-        jobId={job.id}
-        resumeId={selectedResumeId}
-        jobTitle={job.title}
-        company={job.company}
-        applyLink={job.apply_link}
-        platform={job.platform}
+      {/* Smart Apply Wizard */}
+      <SmartApplyWizard
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        job={job}
       />
     </>
   )
